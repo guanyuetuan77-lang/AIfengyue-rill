@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>版本冲突</title>
+<style>
+:root{
+  --bg:#F7F4F8;
+  --card:#ffffff;
+  --line:#EBE5F0;
+  --text:#3B328C;
+  --muted:#7A6F9B;
+  --dim:#B0A6C6;
+  --cool:#3B328C;
+  --cool-soft:#F0EDF5;
+  --warm:#8E6CBB;
+  --warm-soft:#F5F0FA;
+  --hot:#9C4A6B;
+  --hot-soft:#FDF0F2;
+  --pink:#F8C7CE;
+  --cream:#FAE6D6;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  line-height:1.7;
+  font-size:13px;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body.modal-open{overflow:hidden;}
+.mono{font-family:"SF Mono","Fira Code","Consolas","Menlo",ui-monospace,monospace;}
+
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
+.particle{
+  position:absolute;bottom:-30px;
+  animation:floatUp linear infinite;
+  opacity:0;user-select:none;
+  text-shadow:0 0 6px currentColor;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}
+  15%{opacity:.42;}
+  50%{opacity:.52;}
+  85%{opacity:.38;}
+  100%{transform:translateY(-110vh) translateX(16px) rotate(300deg);opacity:0;}
+}
+
+#glow{
+  position:fixed;width:420px;height:420px;pointer-events:none;z-index:0;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(59,50,140,.05) 0%,rgba(248,199,206,.05) 45%,transparent 70%);
+  transform:translate(-50%,-50%);transition:opacity .4s;opacity:0;
+}
+#bar{
+  position:fixed;top:0;left:0;height:2px;width:0;z-index:99;
+  background:linear-gradient(90deg,var(--cool),var(--pink));
+}
+
+.portal{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:70px 20px 100px;}
+.portal-head{text-align:center;margin-bottom:60px;}
+.portal-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:9.5px;letter-spacing:.16em;color:var(--cool);
+  border:1px solid rgba(59,50,140,.25);border-radius:999px;
+  padding:3px 12px;margin-bottom:20px;background:var(--cool-soft);
+  font-family:monospace;
+}
+.portal-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pink);}
+.portal-title{
+  font-size:clamp(40px,9vw,68px);font-weight:800;letter-spacing:.14em;line-height:1.05;
+  background:linear-gradient(100deg,#2A2268 15%,var(--cool) 60%,var(--warm) 115%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.portal-sub{font-size:11.5px;color:var(--muted);margin-top:16px;letter-spacing:.24em;}
+
+.sec-label{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;}
+.sec-label .num{font-family:monospace;font-size:11px;color:var(--warm);letter-spacing:.08em;}
+.sec-label h2{font-size:16px;font-weight:700;letter-spacing:.06em;color:var(--text);}
+.sec-label .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);}
+
+/* 01 世界 */
+.world{margin-bottom:70px;}
+.world-visual{
+  position:relative;border-radius:var(--radius);overflow:hidden;
+  aspect-ratio:2/1;border:1px solid var(--line);
+  background:linear-gradient(135deg,#fbf8fc 0%,#f3eef7 50%,#fdf0f2 100%);
+  transition:.3s;margin-bottom:22px;
+}
+.world-visual:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(59,50,140,.10);}
+.world-visual img{display:block;width:100%;height:100%;object-fit:cover;}
+
+.world-text{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:26px 28px;
+  font-size:12.5px;line-height:2.05;color:#4B3D63;
+}
+.world-text p+p{margin-top:14px;}
+.world-text .hl{color:var(--hot);font-weight:600;}
+.world-text .k{color:var(--cool);font-weight:600;}
+.world-text .q{
+  display:block;padding-left:14px;
+  border-left:2px solid var(--pink);
+  color:var(--muted);font-size:12px;
+  margin:12px 0;
+}
+.world-text .divider{
+  text-align:center;color:var(--dim);
+  letter-spacing:.6em;font-size:10px;
+  margin:20px 0 18px;
+}
+
+/* 02/03 卡牌 */
+.pair-wrap{margin-bottom:60px;}
+.pair{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:30px 0 60px;
+  position:relative;
+}
+.pcard{
+  position:relative;
+  width:44%;
+  max-width:270px;
+  aspect-ratio:3/4.4;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--card);
+  cursor:pointer;
+  flex-shrink:0;
+  transition:transform .45s cubic-bezier(.22,1,.36,1),
+             box-shadow .35s ease,
+             z-index 0s;
+  display:flex;
+  flex-direction:column;
+}
+.pcard.jc{
+  z-index:2;
+  transform:rotate(-2deg) translateY(-10px);
+  box-shadow:-4px 8px 26px rgba(59,50,140,.09);
+}
+.pcard.you{
+  z-index:1;
+  margin-left:-3%;
+  transform:rotate(2deg) translateY(16px);
+  box-shadow:4px 8px 26px rgba(59,50,140,.09);
+}
+.pcard:hover{
+  transform:rotate(0deg) translateY(-10px) scale(1.03);
+  z-index:20;
+  box-shadow:0 14px 34px rgba(59,50,140,.18);
+  border-color:rgba(142,108,187,.45);
+}
+.pcard-img{
+  flex:1;
+  position:relative;
+  background:linear-gradient(135deg,#fbf8fc 0%,#f3eef7 50%,#fdf0f2 100%);
+  overflow:hidden;
+}
+.pcard-img img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;
+  object-position:center 5%;
+}
+.pcard-info{
+  padding:12px 15px 14px;
+  background:var(--card);
+  border-top:1px solid var(--line);
+}
+.pcard-info .pname{
+  font-size:15px;font-weight:800;
+  color:var(--text);letter-spacing:.05em;
+}
+.pcard.jc .pname{color:var(--cool);}
+.pcard.you .pname{color:var(--hot);}
+.pcard-info .pdesc{
+  font-size:10.5px;color:var(--muted);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pcard-info .phint{
+  font-size:9.5px;color:var(--warm);
+  font-family:monospace;letter-spacing:.04em;
+  margin-top:6px;
+}
+
+/* 04 规则 */
+.rules{margin-bottom:60px;}
+.rules-box{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+}
+.rule-intro{padding:22px 24px 20px;border-bottom:1px dashed var(--line);}
+.rule-tag{
+  font-size:10.5px;color:var(--warm);
+  letter-spacing:.06em;margin-bottom:10px;
+  font-family:"SF Mono","Consolas",monospace;
+}
+.rule-intro p{
+  font-size:12.5px;color:#4B3D63;line-height:1.9;
+}
+.rule-intro p+p{margin-top:8px;}
+.rule-intro strong{color:var(--cool);font-weight:700;}
+.rule-intro .hl{color:var(--hot);font-weight:600;}
+
+.rule-tips{
+  padding:18px 24px 22px;
+  background:var(--cool-soft);
+}
+.rule-tips .rule-tag{margin-bottom:12px;}
+.tip{
+  font-size:12px;color:#4B3D63;line-height:1.95;
+  padding-left:16px;position:relative;
+}
+.tip+.tip{margin-top:8px;}
+.tip::before{
+  content:"—";position:absolute;left:0;
+  color:var(--pink);font-weight:700;
+}
+
+/* 模态框 */
+.modal{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(30,22,50,.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:none;overflow-y:auto;padding:24px 16px 40px;
+  animation:modalFade .3s ease;
+}
+.modal.open{display:block;}
+@keyframes modalFade{from{opacity:0;}to{opacity:1;}}
+.modal-inner{
+  max-width:780px;margin:0 auto;background:var(--bg);
+  border-radius:18px;position:relative;
+  animation:modalIn .4s cubic-bezier(.22,1,.36,1);
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+.modal-close{
+  position:absolute;top:14px;right:14px;width:34px;height:34px;
+  border-radius:50%;border:1px solid var(--line);background:var(--card);
+  color:var(--muted);font-size:16px;cursor:pointer;z-index:10;
+  display:flex;align-items:center;justify-content:center;transition:.2s;
+}
+.modal-close:hover{color:var(--hot);border-color:var(--pink);transform:rotate(90deg);}
+.modal-body{padding:36px 30px 30px;}
+
+.head-block{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+  margin-bottom:30px;
+}
+.id-photo{
+  flex-shrink:0;
+  width:78px;
+  aspect-ratio:3/4;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,#fbf8fc 0%,#f3eef7 50%,#fdf0f2 100%);
+  position:relative;
+  box-shadow:0 4px 12px rgba(59,50,140,.08);
+  transition:.3s;
+}
+.id-photo:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,50,140,.14);}
+.id-photo img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;
+  object-position:center 15%;
+}
+
+.head-text{flex:1;min-width:0;padding-top:2px;}
+.jc-name{
+  font-size:clamp(26px,5.5vw,38px);font-weight:800;letter-spacing:.05em;
+  background:linear-gradient(100deg,#2A2268 15%,var(--cool) 60%,var(--warm) 115%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  display:inline-block;line-height:1.1;
+}
+.jc-sub{font-size:10.5px;color:var(--dim);letter-spacing:.22em;margin-top:6px;font-family:monospace;}
+.jc-tagline{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.7;}
+.jc-tagline b{color:var(--text);}
+
+#playerModal .jc-name{
+  background:linear-gradient(100deg,#7A2A4C 15%,var(--hot) 60%,var(--warm) 115%);
+  -webkit-background-clip:text;background-clip:text;
+}
+
+.sec-head{display:flex;align-items:baseline;gap:11px;margin-bottom:16px;margin-top:34px;}
+.sec-head h2{font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--text);}
+.sec-head .en{font-size:10px;color:var(--dim);font-family:monospace;letter-spacing:.04em;}
+.sec-head .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{
+  padding:5px 13px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);color:var(--muted);font-size:11.5px;
+  cursor:pointer;transition:.2s;font-family:inherit;
+}
+.tab:hover{color:var(--text);border-color:#D5CCE5;}
+.tab.on{background:var(--cool-soft);border-color:rgba(59,50,140,.4);color:var(--cool);font-weight:600;}
+.panel{display:none;animation:fade .3s ease;}
+.panel.on{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+
+.pcard-text{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:15px 18px;
+  font-size:12.5px;color:#4B3D63;
+}
+.pcard-text p+p{margin-top:8px;}
+.pcard-text .hl{color:var(--hot);font-weight:600;}
+.pcard-text .cl{color:var(--cool);font-weight:600;}
+
+.looks{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 19px;
+  font-size:12.5px;color:#4B3D63;line-height:1.85;
+}
+.looks p+p{margin-top:10px;}
+.looks .k{color:var(--cool);font-weight:600;}
+.looks .w{color:var(--hot);font-weight:600;}
+
+.quote-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+.q-item{
+  padding:11px 16px;border-bottom:1px dashed var(--line);
+  cursor:pointer;transition:.2s;user-select:none;position:relative;
+}
+.q-item:last-child{border-bottom:none;}
+.q-item:hover{background:var(--cool-soft);}
+.q-item .txt{font-size:12.5px;color:#3D3560;padding-left:14px;position:relative;}
+.q-item .txt::before{
+  content:">";position:absolute;left:0;top:0;
+  color:var(--pink);font-family:monospace;font-weight:700;font-size:11px;
+}
+.q-item.kind-soft .txt::before{color:var(--warm);}
+.q-item.kind-hot .txt::before{color:var(--hot);}
+.q-item.kind-soft:hover{background:var(--hot-soft);}
+.q-item .ctx{
+  max-height:0;overflow:hidden;
+  transition:max-height .3s ease,opacity .25s,margin .25s;
+  opacity:0;font-size:11.5px;color:var(--muted);
+  border-top:1px dashed transparent;line-height:1.7;padding-left:14px;
+}
+.q-item.open .ctx{max-height:180px;opacity:1;margin-top:7px;padding-top:7px;border-top-color:var(--line);}
+.q-item .hint{font-size:9px;color:var(--dim);letter-spacing:.1em;margin-top:3px;padding-left:14px;font-family:monospace;}
+.q-item.open .hint{display:none;}
+
+.sens{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 19px;}
+.sens-item{
+  display:flex;gap:14px;padding:9px 0;
+  border-bottom:1px dashed var(--line);align-items:baseline;
+}
+.sens-item:last-child{border-bottom:none;}
+.sens-item .part{
+  flex-shrink:0;min-width:94px;font-size:11.5px;font-weight:700;
+  color:var(--hot);letter-spacing:.02em;font-family:monospace;
+}
+.sens-item .part::before{content:"> ";color:var(--pink);}
+.sens-item .desc{font-size:12px;color:#4B3D63;line-height:1.7;}
+.sens-item .desc b{color:var(--hot);font-weight:600;}
+
+/* 表单 */
+.form-group{margin-bottom:22px;}
+.form-label{
+  display:flex;align-items:baseline;gap:10px;
+  font-size:11.5px;color:var(--warm);
+  font-family:monospace;letter-spacing:.08em;margin-bottom:6px;
+}
+.form-label::before{content:"$";color:var(--pink);}
+.form-label .rand-btn{
+  margin-left:auto;background:transparent;border:1px solid var(--line);
+  border-radius:6px;color:var(--muted);font-size:10.5px;
+  padding:3px 9px;cursor:pointer;font-family:inherit;transition:.2s;
+  letter-spacing:0;
+}
+.form-label .rand-btn:hover{color:var(--warm);border-color:var(--warm);}
+.form-sub{
+  font-size:11px;color:var(--dim);margin-bottom:8px;
+  line-height:1.6;
+}
+.form-input,.form-textarea{
+  width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:11px 14px;font-family:inherit;
+  font-size:12.5px;color:var(--text);outline:none;
+  transition:.2s;line-height:1.7;
+}
+.form-input:focus,.form-textarea:focus{
+  border-color:var(--warm);box-shadow:0 0 0 3px rgba(142,108,187,.1);
+}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--dim);}
+.form-textarea{min-height:80px;resize:vertical;}
+.height-row{display:flex;align-items:center;gap:14px;}
+.height-row input[type=range]{flex:1;}
+.height-val{
+  font-family:monospace;font-size:15px;font-weight:700;
+  color:var(--warm);min-width:56px;text-align:right;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--pink),var(--cool));outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;background:#fff;
+  border:3px solid var(--warm);cursor:pointer;
+  box-shadow:0 2px 7px rgba(142,108,187,.35);transition:.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12);}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  border:3px solid var(--warm);cursor:pointer;
+}
+
+.form-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
+.btn{
+  flex:1;min-width:140px;padding:12px 20px;border-radius:10px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  font-family:inherit;font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:.22s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(59,50,140,.1);}
+.btn.primary{
+  background:linear-gradient(135deg,var(--cool),var(--warm));
+  border-color:transparent;color:#fff;
+}
+.btn.primary:hover{box-shadow:0 6px 20px rgba(142,108,187,.3);}
+.btn .ico{font-family:monospace;font-size:13px;}
+
+.toast{
+  position:fixed;bottom:40px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:#fff;padding:10px 22px;
+  border-radius:999px;font-size:12px;letter-spacing:.06em;
+  opacity:0;pointer-events:none;
+  transition:.3s cubic-bezier(.22,1,.36,1);
+  z-index:300;box-shadow:0 8px 24px rgba(59,50,140,.3);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.foot{
+  margin-top:60px;padding-top:22px;
+  border-top:1px solid var(--line);
+  text-align:center;font-size:11px;
+  color:var(--muted);letter-spacing:.08em;
+}
+.foot b{color:var(--warm);font-weight:600;}
+
+@media(max-width:640px){
+  .portal{padding:46px 14px 80px;}
+  .portal-head{margin-bottom:44px;}
+  .world-text{padding:20px 20px;font-size:12px;line-height:1.95;}
+  .world-text .q{font-size:11.5px;}
+  .pair{padding:24px 0 46px;}
+  .pcard{max-width:190px;border-radius:14px;}
+  .pcard.you{margin-left:-2%;}
+  .pcard-info{padding:10px 12px 12px;}
+  .pcard-info .pname{font-size:13.5px;}
+  .pcard-info .pdesc{font-size:10px;}
+  .rule-intro{padding:18px 18px 16px;}
+  .rule-tips{padding:16px 18px 18px;}
+  .modal{padding:14px 10px 30px;}
+  .modal-body{padding:28px 20px 22px;}
+  .head-block{gap:14px;margin-bottom:24px;}
+  .id-photo{width:66px;border-radius:8px;}
+  .jc-name{font-size:clamp(22px,6vw,30px);}
+  .jc-tagline{font-size:12px;margin-top:10px;}
+  .sec-head{margin-top:28px;}
+  .q-item{padding:10px 13px;}
+  .sens-item{flex-direction:column;gap:4px;}
+  .sens-item .part{min-width:auto;}
+  .form-actions{flex-direction:column;}
+  .btn{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<div id="bar"></div>
+<div id="glow"></div>
+
+<div class="portal">
+
+  <header class="portal-head">
+    <div class="portal-tag mono">// VERSION CONFLICT</div>
+    <h1 class="portal-title">版本冲突</h1>
+    <p class="portal-sub mono">PRD × CODE // 谁先服软谁输</p>
+  </header>
+
+  <!-- 01 世界 -->
+  <section class="world">
+    <div class="sec-label">
+      <span class="num">01</span>
+      <h2>他们身边的世界</h2>
+      <span class="ln"></span>
+    </div>
+
+    <div class="world-visual">
+      <img src="https://i.postimg.cc/c4ZzFJK5/2040.png" alt="世界">
+    </div>
+
+    <div class="world-text">
+      <p>整层楼都知道，产品组的她和研发组的江彻不对付。他俩要在一层楼，这层楼就别想安静。</p>
+      <p>茶水间的门总是半掩着。有人听见江彻摔了一句“这需求谁写的”，三分钟后她端着杯子走进去，把文档拍在他桌上：“我写的，你有意见？”<span class="hl">没人敢劝。</span>劝的人后来都学会了绕道走。</p>
+      <p>会议室的玻璃墙挡不住声音。实习生第一次撞见他们吵，吓得去找主管，主管头也不抬：“别管，吵完就好。”——半小时后两人一前一后出来，她工位上多了一份改好的技术方案，他桌上多了一杯冰美式。<span class="k">谁放的，没人看见。</span></p>
+      <p>食堂阿姨记得他们。一个打米饭要多一勺，一个不吃香菜。偶尔他们坐同一张桌子，全程不说话——但江彻把她碗里的香菜全挑到了自己碗里。<span class="q">“吵架归吵架，饭还是要吃的。”阿姨后来跟别人说。</span></p>
+      <p>楼下便利店的老板也记得。凌晨两点，江彻进来买胃药和热牛奶，问“有没有热的”，老板说只有常温的。他站在货架前想了很久，最后拿了两瓶，一瓶揣兜里，一瓶放进了外套内侧。</p>
+      <div class="divider mono">· · ·</div>
+      <p>没有人知道他们高中就认识。</p>
+      <p>也没有人知道，江彻手机里她的备注，从加上好友那天起就没改过。</p>
+      <p><span class="hl">只有他们俩知道。</span></p>
+    </div>
+  </section>
+
+  <!-- 02/03 两张卡 -->
+  <div class="pair-wrap">
+    <div class="sec-label">
+      <span class="num">02 / 03</span>
+      <h2>你们</h2>
+      <span class="ln"></span>
+    </div>
+
+    <div class="pair">
+
+      <div class="pcard jc" onclick="openJC()">
+        <div class="pcard-img">
+          <img src="https://i.postimg.cc/9QDhCMWf/IMG-8196.jpg" alt="江彻">
+        </div>
+        <div class="pcard-info">
+          <div class="pname">江彻</div>
+          <div class="pdesc">技术负责人 · 你的死对头</div>
+          <div class="phint">点击查看 →</div>
+        </div>
+      </div>
+
+      <div class="pcard you" onclick="openPlayer()">
+        <div class="pcard-img">
+          <img src="https://i.postimg.cc/t4sjpTX4/IMG-8195.jpg" alt="你">
+        </div>
+        <div class="pcard-info">
+          <div class="pname">你</div>
+          <div class="pdesc">产品经理 · 他的死对头</div>
+          <div class="phint">点击自设 →</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 04 规则 -->
+  <section class="rules">
+    <div class="sec-label">
+      <span class="num">04</span>
+      <h2>怎么玩</h2>
+      <span class="ln"></span>
+    </div>
+
+    <div class="rules-box">
+
+      <div class="rule-intro">
+        <div class="rule-tag">// 核心玩法</div>
+        <p>你是产品经理，他是技术负责人，<strong>平级</strong>。从高中到现在，你们比的一直是同一件事——<span class="hl">谁先服软。</span></p>
+        <p>他不是按钮。他有自己的脾气、自己的节奏、自己的判断。你怼他，他接得住，也接得狠；你退半步，他未必追，但会盯着你看。<strong>节奏是你们俩一起吵出来的。</strong></p>
+      </div>
+
+      <div class="rule-tips">
+        <div class="rule-tag">// 一点提示</div>
+        <div class="tip">他吃软不吃硬。你软得不动声色，他才会上心；软得太明显，他只会得意，然后装作没看见</div>
+        <div class="tip">他嘴上不认，眼睛比嘴诚实。你多看他一秒，他就多记你一天。不用拆穿，他自己会露</div>
+        <div class="tip">你不动，他未必不动。急的从来不是只有你一个。他退半步的时候，是在等你往前半步</div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="foot">
+    本作品由 <b>@蛋蛋冬枣</b> 制作
+  </div>
+
+</div>
+
+<!-- 江彻模态框 -->
+<div class="modal" id="jcModal" onclick="if(event.target===this)closeJC()">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeJC()">×</button>
+    <div class="modal-body">
+
+      <div class="head-block">
+        <div class="id-photo">
+          <img src="https://i.postimg.cc/YCvHM9pq/581EFED6-D203-4528-99BA-EF3062B6BA2D.png" alt="证件照">
+        </div>
+        <div class="head-text">
+          <div class="jc-name">江彻</div>
+          <div class="jc-sub mono">JIANG CHE // TECH LEAD</div>
+          <div class="jc-tagline">28 岁 · 技术负责人 / 研发组长 · <b>你的死对头</b></div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>他是怎么藏的</h2>
+        <span class="en">// public · private · you</span>
+        <span class="ln"></span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab on" data-p="p1">表面</button>
+        <button class="tab" data-p="p2">里面</button>
+        <button class="tab" data-p="p3">对你</button>
+      </div>
+
+      <div class="panel on" id="p1">
+        <div class="pcard-text">
+          <p>嘴毒、懒散、不耐烦。开会怼你，群里拆你，电梯里遇见也要嗤一声。</p>
+          <p><span class="hl">嘴上没一句好话，但他怼你的点，全是你真做得不够好的地方。</span></p>
+        </div>
+      </div>
+
+      <div class="panel" id="p2">
+        <div class="pcard-text">
+          <p>护短到不讲理。你换香水、剪头发、手腕贴创可贴，<span class="cl">他全知道，但绝不说</span>。</p>
+          <p><span class="hl">暗恋你多年，自己不肯承认，也不许别人先发现。</span></p>
+          <p>他怕的不是你拒绝。他怕的是你知道以后，你们连死对头都做不成。</p>
+        </div>
+      </div>
+
+      <div class="panel" id="p3">
+        <div class="pcard-text">
+          <p>公开场合针锋相对，私下你出事他比谁都急。嘴上说“谁管你”，手上已经把药、外套、伞递过来了。</p>
+          <p><span class="hl">你越示弱，他越凶</span>——因为他不知道怎么接。</p>
+          <p><span class="hl">你越逞强，他越气</span>——因为他一眼看穿。</p>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>他长什么样</h2>
+        <span class="en">// appearance</span>
+        <span class="ln"></span>
+      </div>
+      <div class="looks">
+        <p>187，肩宽腰窄，穿黑T时肩线撑得很满。站姿懒散，走起来却利落，步子大，你经常要小跑才跟得上。头发偏黑有点长，后颈碎发总翘着，他自己懒得打理。<span class="w">眉尾一道浅疤</span>，是高中被你用《五年高考三年模拟》砸的。左耳一个小耳洞，大学被室友拉着打的，从不戴东西，也没让它长死。</p>
+        <p>眼睛偏长，眼尾微垂，像永远没睡醒。但认真看你的时候，<span class="k">眼神会突然变锐</span>，像能把人看穿。鼻子挺，嘴唇偏薄，说话前喜欢嗤一声。下巴线条利落，喉结明显，说话时上下滚动。</p>
+        <p>手指长，骨节分明，指甲修得干净。<span class="k">敲键盘很快，转笔更快</span>。指腹有修书留下的薄茧，手背青筋隐约。皮肤是常年不见太阳的冷白，锁骨深，穿圆领时能看见一小截。</p>
+      </div>
+
+      <div class="sec-head">
+        <h2>他会说的话</h2>
+        <span class="en">// what_he_said</span>
+        <span class="ln"></span>
+      </div>
+
+      <div class="quote-box">
+        <div class="q-item" data-ctx="需求评审会上，当着全组的面。但他批完，晚上自己把技术难点全趟了一遍，第二天方案里多了三页备注。">
+          <div class="txt">“你这方案，狗看了都摇头。”</div>
+          <div class="ctx"></div>
+          <div class="hint">点击展开</div>
+        </div>
+
+        <div class="q-item kind-soft" data-ctx="你在他面前哭了。他手停在半空，最后只把纸巾盒推过来，别开脸，声音低了一截。">
+          <div class="txt">“哭什么，我又没死。”</div>
+          <div class="ctx"></div>
+          <div class="hint">点击展开</div>
+        </div>
+
+        <div class="q-item kind-soft" data-ctx="同学会散场，他家在反方向。你说了不用送，他还是把车开过来了，一路没说话。">
+          <div class="txt">“别多想，顺路。”</div>
+          <div class="ctx"></div>
+          <div class="hint">点击展开</div>
+        </div>
+
+        <div class="q-item kind-soft" data-ctx="最接近告白的一句。他没说完，因为你也刚好开口。两个人都装作没听见。">
+          <div class="txt">“我要是真烦你，早走了。我……”</div>
+          <div class="ctx"></div>
+          <div class="hint">点击展开</div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>他哪里最藏不住</h2>
+        <span class="en">// sensitive_points</span>
+        <span class="ln"></span>
+      </div>
+      <div class="sens">
+        <div class="sens-item">
+          <span class="part">左耳 · 耳洞</span>
+          <span class="desc">他自己都快忘了那个洞。你指尖碰上去，他会<b>整个人僵住</b>，耳朵从尖红到洞边。嘴上说“别碰”，脖子却没动。</span>
+        </div>
+        <div class="sens-item">
+          <span class="part">眉尾 · 浅疤</span>
+          <span class="desc">你摸那道疤，他会偏头躲一下，但躲得很敷衍。那是你砸的，他留了这么多年，<b>从没供出你</b>。</span>
+        </div>
+        <div class="sens-item">
+          <span class="part">指腹 · 薄茧</span>
+          <span class="desc">修书磨出来的。你指尖划过他掌心，他会<b>攥拳把你手指包住</b>，偏开脸，耳朵又红了。嘴上骂你“烦不烦”。</span>
+        </div>
+        <div class="sens-item">
+          <span class="part">手腕 · 表带下</span>
+          <span class="desc">旧表下面那圈皮肤常年不见光，白得晃眼。你手指伸进表带和皮肤之间，他会<b>绷紧手腕</b>，呼吸乱一拍。</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 玩家模态框 -->
+<div class="modal" id="playerModal" onclick="if(event.target===this)closePlayer()">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closePlayer()">×</button>
+    <div class="modal-body">
+
+      <div class="head-block">
+        <div class="id-photo">
+          <img src="https://i.postimg.cc/sgMrsXVd/IMG-8201.jpg" alt="证件照">
+        </div>
+        <div class="head-text">
+          <div class="jc-name">你</div>
+          <div class="jc-sub mono">YOU // PRODUCT MANAGER</div>
+          <div class="jc-tagline">产品经理 · <b>他的死对头</b></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          姓名
+          <button class="rand-btn" onclick="randField('pName')">随机</button>
+        </div>
+        <div class="form-sub">他手机里存的备注是“麻烦精”，但你的真名他一直记着。</div>
+        <input type="text" class="form-input" id="pName" placeholder="填你的名字">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          身高
+        </div>
+        <div class="form-sub">和他站一起差多少，你心里有数。</div>
+        <div class="height-row">
+          <input type="range" id="pHeight" min="150" max="185" value="163" step="1" oninput="updateHeightVal()">
+          <span class="height-val" id="pHeightVal">163 cm</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          性格
+          <button class="rand-btn" onclick="randField('pPersonality')">随机</button>
+        </div>
+        <div class="form-sub">他嘴上说你难搞，其实最吃你这一套。</div>
+        <textarea class="form-textarea" id="pPersonality" placeholder="填你的性格"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          外貌
+          <button class="rand-btn" onclick="randField('pAppearance')">随机</button>
+        </div>
+        <div class="form-sub">他记得你换过什么香水，但不会说。</div>
+        <textarea class="form-textarea" id="pAppearance" placeholder="填你的外貌"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          与他的旧事
+          <button class="rand-btn" onclick="randField('pStory')">随机</button>
+        </div>
+        <div class="form-sub">你们之间的事，说一半就够他记一辈子。</div>
+        <textarea class="form-textarea" id="pStory" placeholder="填你们的旧事"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          开局
+          <button class="rand-btn" onclick="randField('pOpening')">随机</button>
+        </div>
+        <div class="form-sub">故事从哪一刻开始，你说了算。</div>
+        <textarea class="form-textarea" id="pOpening" placeholder="填开场场景"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          补充
+          <button class="rand-btn" onclick="randField('pExtra')">随机</button>
+        </div>
+        <div class="form-sub">没说到的，都留给你。</div>
+        <textarea class="form-textarea" id="pExtra" placeholder="填任何想补充的"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn primary" onclick="copyPlayerData()">
+          <span class="ico">⎘</span> 一键复制
+        </button>
+        <button class="btn" onclick="randomAll()">
+          <span class="ico">⟳</span> 随机生成
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">已复制</div>
+
+<script>
+/* 粒子 */
+const particleContainer = document.getElementById('particles');
+const symbols = ['♡', '✦'];
+const colors = ['#C4A8DC', '#E8A8BE', '#A890C8'];
+const particleCount = 26;
+
+for (let i = 0; i < particleCount; i++) {
+  const el = document.createElement('div');
+  el.classList.add('particle');
+  el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+  el.style.color = colors[Math.floor(Math.random() * colors.length)];
+  el.style.left = Math.random() * 100 + 'vw';
+  el.style.fontSize = (Math.random() * 12 + 9) + 'px';
+  el.style.animationDuration = (Math.random() * 16 + 12) + 's';
+  el.style.animationDelay = (Math.random() * 14) + 's';
+  particleContainer.appendChild(el);
+}
+
+/* 光晕 */
+const glow = document.getElementById('glow');
+let gx = 0, gy = 0, cx = 0, cy = 0;
+document.addEventListener('mousemove', e => {
+  gx = e.clientX; gy = e.clientY;
+  glow.style.opacity = 1;
+});
+(function loop(){
+  cx += (gx - cx) * 0.09;
+  cy += (gy - cy) * 0.09;
+  glow.style.left = cx + 'px';
+  glow.style.top = cy + 'px';
+  requestAnimationFrame(loop);
+})();
+
+/* 进度条 */
+const bar = document.getElementById('bar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (window.scrollY / h * 100) + '%';
+});
+
+/* 模态框 */
+function openJC(){
+  document.getElementById('jcModal').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+function closeJC(){
+  document.getElementById('jcModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+function openPlayer(){
+  document.getElementById('playerModal').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+function closePlayer(){
+  document.getElementById('playerModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+
+/* Tab */
+document.querySelectorAll('#jcModal .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#jcModal .tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('#jcModal .panel').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById(t.dataset.p).classList.add('on');
+  });
+});
+
+/* 对话展开 */
+document.querySelectorAll('#jcModal .q-item').forEach(q => {
+  const ctx = q.querySelector('.ctx');
+  ctx.textContent = q.dataset.ctx;
+  q.addEventListener('click', () => q.classList.toggle('open'));
+});
+
+/* 身高 */
+function updateHeightVal(){
+  const v = document.getElementById('pHeight').value;
+  document.getElementById('pHeightVal').textContent = v + ' cm';
+}
+updateHeightVal();
+
+/* 随机池 */
+const randoms = {
+  pName: ['林晚', '沈知意', '苏念', '许星然', '陆听雪', '温晚棠', '周怀瑾', '顾昭昭', '江月白', '程知夏'],
+  pPersonality: [
+    '表面冷静，私下爱撒娇。嘴上不饶人，心里比谁都软。',
+    '慢热，认定的事就不会回头。生气的时候不说话，但会一直看你。',
+    '看起来很听话，其实很有主见。不喜欢被安排，尤其是被他安排。',
+    '话少，眼睛比嘴诚实。喜欢一个人的时候会先躲，躲不掉才靠近。',
+    '嘴硬心软，跟江彻一个德性。谁先低头谁输，所以谁都不低头。',
+    '看起来好说话，其实底线很清楚。踩到了会翻脸，翻完脸又会后悔。'
+  ],
+  pAppearance: [
+    '身高不高，黑发齐肩。笑起来有梨涡，生气的时候会抿嘴。',
+    '冷白皮，长发扎成低马尾。眼睛偏圆，看人的时候很直。',
+    '短发利落，鼻梁上有一颗小痣。手指细长，敲键盘的时候很轻。',
+    '有点瘦，锁骨明显。喜欢穿素色，不化浓妆，但口红永远是红的。',
+    '眉眼里有点少年气，笑起来眼睛弯弯的。左手腕上戴着一根旧红绳。',
+    '个子偏高，走路的时候习惯性低头看手机。穿黑T的时候和江彻有点像。'
+  ],
+  pStory: [
+    '高中同校，你拿书砸过他，留了疤。大学同城，你失恋那晚他出现在宿舍楼下。',
+    '大学辩论赛决赛，你赢了他。他一直记到现在，你也是。',
+    '毕业后进了同一家公司，面试那天在电梯里遇见，两人同时说“你怎么在这”。',
+    '你比他先入职一年。他进来那天，你带他去领的工牌。',
+    '你们从高中起就互相看不顺眼，但谁都没真正删过对方的联系方式。'
+  ],
+  pOpening: [
+    '从会议室吵完架开始。他刚把你的方案批得一文不值，人走光了，他没走。',
+    '从凌晨加班开始。整层楼只剩你们俩，他走过来把外套扔在你椅子上。',
+    '从你发现他手机里你的备注开始。他没解释，你也装作没看见。',
+    '从同学会散场开始。他家在反方向，还是把车开过来了。',
+    '从你被别的部门甩锅开始。他会上直接拍了桌子，散会后一句话没说。'
+  ],
+  pExtra: [
+    '胃不好，但他不知道。每次加班胃疼的时候，都会假装去茶水间。',
+    '手机里存着他的旧号码，备注一直没改。',
+    '家里有一盒他高中送的笔，一支都没用过。',
+    '讨厌香菜，喜欢冰美式，但和他一起的时候只点热的。',
+    '有一个旧钥匙扣，和他那个是一对。'
+  ]
+};
+
+function randField(id){
+  const arr = randoms[id];
+  if (!arr) return;
+  document.getElementById(id).value = arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomAll(){
+  randField('pName');
+  document.getElementById('pHeight').value = 152 + Math.floor(Math.random() * 30);
+  updateHeightVal();
+  randField('pPersonality');
+  randField('pAppearance');
+  randField('pStory');
+  randField('pOpening');
+  randField('pExtra');
+  showToast('已随机生成');
+}
+
+/* 复制 */
+function copyPlayerData(){
+  const name = document.getElementById('pName').value.trim() || '（未填写）';
+  const height = document.getElementById('pHeight').value + ' cm';
+  const personality = document.getElementById('pPersonality').value.trim() || '（未填写）';
+  const appearance = document.getElementById('pAppearance').value.trim() || '（未填写）';
+  const story = document.getElementById('pStory').value.trim() || '（未填写）';
+  const opening = document.getElementById('pOpening').value.trim() || '（未填写）';
+  const extra = document.getElementById('pExtra').value.trim() || '（未填写）';
+
+  const text =
+`【姓名】${name}
+【身高】${height}
+【性格】${personality}
+【外貌】${appearance}
+【与他的旧事】${story}
+【开局】${opening}
+【补充】${extra}`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('已复制')).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('已复制');
+  } catch(e) {
+    showToast('复制失败');
+  }
+  document.body.removeChild(ta);
+}
+
+/* Toast */
+let toastTimer;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+/* Esc 关闭 */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    closeJC();
+    closePlayer();
+  }
+});
+</script>
+
+</body>
+</html>
